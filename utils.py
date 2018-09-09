@@ -50,6 +50,16 @@ def validate_url(url):
     RE_D = re.compile(r'^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$')
     return bool(RE_D.match(url))
 
+def validate_hash(hash, session=session, model=URL):
+    return bool(session.query(model).filter_by(**{'hash': hash}).first())
+
+
+def get_hash():
+    _hash = str(uuid.uuid4())[:5]
+    while validate_hash(_hash):
+        _hash = str(uuid.uuid4())[:5]
+    return _hash
+
 
 def get_or_create_url(url, session=session, model=URL):
     """Save url sqlalchemy and create a uuid
@@ -70,7 +80,7 @@ def get_or_create_url(url, session=session, model=URL):
         return instance
     else:
         try:
-            _hash = str(uuid.uuid4())[:5]
+            _hash = get_hash()
             instance = model(**{'text': url, 'hash': _hash})
             session.add(instance)
             session.commit()
