@@ -2,8 +2,7 @@ version: '3'
 services:
   web:
     build: .
-    command:  "adev runserver './main.py' --app-factory='init'" 
-    # command: "python ./main.py"
+    command:  "sh ./run.sh" 
     depends_on:
       - postgres
     volumes:
@@ -12,6 +11,10 @@ services:
       - "8000:8000"
     environment:
       DATABASE_URL: postgres://bard@postgres/story
+      DEV: "true"
+      POSTGRES_USER: bard
+      POSTGRES_DB: story
+      POSTGRES_PASSWORD: STORY
   postgres:
     image: postgres:9.6.2-alpine
     environment:

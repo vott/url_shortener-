@@ -4,7 +4,7 @@ RUN apk update \
     build-base \
     postgresql \
     postgresql-dev \
-    libpq
+    libpq 
 
 RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
