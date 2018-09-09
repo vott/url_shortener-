@@ -5,7 +5,7 @@ import random
 import string
 import uuid
 
-from aiohttp.web import HTTPBadRequest
+from aiohttp.web import HTTPBadRequest, HTTPNotFound
 
 from utils import (
     validate_url,
@@ -29,13 +29,11 @@ async def spam(request):
 
     if request.method == 'GET':
         word = request.match_info.get('id', 'Anonymous')
-        error = ''
-        if error:
-            return {'error': error}
-        else:
-            location = get_url(id)
-            print(location)
+        location = get_url(id)
+        if location:
             raise web.HTTPFound(location=location)
+        else:
+            raise HTTPNotFound()
 
     return {}
 

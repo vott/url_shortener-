@@ -11,7 +11,7 @@ from sqlalchemy.sql import insert
 from sqlalchemy.sql.expression import func, select
 from sqlalchemy.orm import Session 
 
-from db import register_tables, Word, Title, URL
+from db import register_tables, URL
 
 def setup_database():
     """Setup of the database, we could use a config file for this parameters 
@@ -34,8 +34,6 @@ engine = setup_database()
 session = Session(engine)
 Base = automap_base()
 Base.prepare(engine, reflect=True)
-Word = Base.classes.word
-Title = Base.classes.title
 URL = Base.classes.url
 
 def validate_url(url):
@@ -110,4 +108,5 @@ def get_url(url_hash, session=session, model=URL):
     """get url sqlalchemy
     """
     instance = session.query(model).filter_by(**{'hash': url_hash}).first()
-    return str(instance.text)
+    if instance:
+        return str(instance.text)
