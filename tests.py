@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from main import init
 from utils import validate_url
+
 class ShorteningTestCase(AioHTTPTestCase):
 
     async def get_application(self):
@@ -22,7 +23,13 @@ class ShorteningTestCase(AioHTTPTestCase):
         assert resp.status == 200
         text = await resp.text()
         assert "url" in text
-
+    
+    @unittest_run_loop
+    async def test_short_bad(self):
+        resp = await self.client.request("POST", "/short/", json={'sa': 'https://stackoverflow.com/question/'})
+        assert resp.status == 400
+        text = await resp.text()
+        assert "url not in body" in text
 
 class TestValidation(unittest.TestCase):
     """Tests util function

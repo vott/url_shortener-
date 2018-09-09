@@ -1,15 +1,8 @@
-import aiohttp
-import asyncio
 import logging
-import os
-import random
 import re
-import requests
-import string
 import uuid
 
 
-from math import floor
 from sqlalchemy import (
     create_engine, MetaData
 )
@@ -46,18 +39,34 @@ Title = Base.classes.title
 URL = Base.classes.url
 
 def validate_url(url):
+    """regex validation for urls
+
+    
+    Arguments:
+        url {str} 
+    
+    Returns:
+        bool
+    """
+
     RE_D = re.compile(r'^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$')
     return bool(RE_D.match(url))
 
 
-def get_mapping():
-    with open('random_bits.csv', 'r') as csv_file:
-        mapping = csv_file.readline()
-        return(mapping)
-
 def get_or_create_url(url, session=session, model=URL):
-    """Save url sqlalchemy
+    """Save url sqlalchemy and create a uuid
+    
+    Arguments:
+        url {str} -- [description]
+    
+    Keyword Arguments:
+        session (default: {session})
+        model (default: {URL})
+    
+    Returns:
+        SQLalchemy instance for url
     """
+
     instance = session.query(model).filter_by(**{'text': url}).first()
     if instance:
         return instance
@@ -70,17 +79,16 @@ def get_or_create_url(url, session=session, model=URL):
         except Exception as e:
             logging.warning('Exception: {}'.format(e))
             session.rollback()    
-    return get_or_create(session, URL, )
+    return instance
 
-def get_or_create(session, model, **kwargs):
+def get_or_create(model, session=session, **kwargs):
     """Equivalent functionality to django's get_or-create for sqlalchemy
     source:
     https://stackoverflow.com/questions/2546207/does-sqlalchemy-have-an-equivalent-of-djangos-get-or-create
     
     Arguments:
-        session -- sqlalchemy db session
         model -- sqlalchemy db model
-    
+        session -- sqlalchemy db session
     Returns:
         sqlalchemy row
     """

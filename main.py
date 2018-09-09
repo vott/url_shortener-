@@ -16,15 +16,13 @@ from utils import (
 web = aiohttp.web
 
 async def spam(request):
-    """View for fetching duckduckgo results
-    it could be in it's own file but it's not
-    necessary.
+    """View for fetching redirecting to a shortened url
     
     Arguments:
         request {request} -- Request object
     
     Returns:
-        Json Response, Contains 3 results for a search
+        HTTPFound 302 
     """
 
     id = request.match_info.get('id', 'Anonymous')
@@ -42,17 +40,28 @@ async def spam(request):
     return {}
 
 async def url_shortener(request):
+    """
+        View to that recieves an url and returns
+        a smaller version of it
+    """
     if request.method == 'POST':
+        # get data from post
         data = await request.json()
+        # validate structure of the json contained by the request
         if 'url' not in data.keys():
             raise HTTPBadRequest(reason='url not in body')
         url = data['url']
+        # validate the provide url
         if not validate_url(url):
             raise HTTPBadRequest(reason='wrong url format')
         _url = get_or_create_url(url)
-        return web.json_response(data={
-            'url': f'http://localhost:8000/sht/{_url.hash}'
-        })
+        # generate response
+        return web.json_response(
+            data={
+                'status':201,
+                'url': f'http://localhost:8000/sht/{_url.hash}'
+            }
+        )
         
 
 
