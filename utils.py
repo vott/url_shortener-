@@ -50,15 +50,25 @@ def validate_url(url):
     RE_D = re.compile(r'^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$')
     return bool(RE_D.match(url))
 
-def validate_hash(hash, session=session, model=URL):
-    return bool(session.query(model).filter_by(**{'hash': hash}).first())
-
-
-def get_hash():
-    _hash = str(uuid.uuid4())[:5]
-    while validate_hash(_hash):
+def _create_url(url, session=session, model=URL):
+    try:
         _hash = str(uuid.uuid4())[:5]
-    return _hash
+        instance = model(**{'text': url, 'hash': _hash})
+        session.add(instance)
+        session.commit()
+        return instance
+    except Exception as e:
+        logging.warning('Exception: {}'.format(e))
+        session.rollback() 
+        return None
+    
+
+
+def create_url(url, session=session, model=URL):
+    instance = _create_url(url)
+    while not instance:
+        instance = _create_url(url)
+    return instance
 
 
 def get_or_create_url(url, session=session, model=URL):
@@ -79,14 +89,7 @@ def get_or_create_url(url, session=session, model=URL):
     if instance:
         return instance
     else:
-        try:
-            _hash = get_hash()
-            instance = model(**{'text': url, 'hash': _hash})
-            session.add(instance)
-            session.commit()
-        except Exception as e:
-            logging.warning('Exception: {}'.format(e))
-            session.rollback()    
+        instance = create_url(url)
     return instance
 
 def get_or_create(model, session=session, **kwargs):
