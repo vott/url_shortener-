@@ -1,9 +1,19 @@
 import asyncio
-import aiohttp 
+import aiohttp
+import csv
+import random
+import string
+import uuid
+
+from aiohttp.web import HTTPBadRequest
+
+from utils import (
+    validate_url,
+    get_or_create_url,
+    get_url
+)
 
 web = aiohttp.web
-from utils import save_words, fetch_results
-
 
 async def spam(request):
     """View for fetching duckduckgo results
@@ -17,12 +27,33 @@ async def spam(request):
         Json Response, Contains 3 results for a search
     """
 
-    word = request.match_info.get('word', 'Anonymous')
-    url='https://duckduckgo.com/html/'
-    results  = await fetch_results(url, word)
-    data = {word:results}
-    return web.json_response(data)
+    id = request.match_info.get('id', 'Anonymous')
 
+    if request.method == 'GET':
+        word = request.match_info.get('id', 'Anonymous')
+        error = ''
+        if error:
+            return {'error': error}
+        else:
+            location = get_url(id)
+            print(location)
+            raise web.HTTPFound(location=location)
+
+    return {}
+
+async def url_shortener(request):
+    if request.method == 'POST':
+        data = await request.json()
+        if 'url' not in data.keys():
+            raise HTTPBadRequest(reason='url not in body')
+        url = data['url']
+        if not validate_url(url):
+            raise HTTPBadRequest(reason='wrong url format')
+        _url = get_or_create_url(url)
+        return web.json_response(data={
+            'url': f'http://localhost:8000/sht/{_url.hash}'
+        })
+        
 
 
 def init():
@@ -33,7 +64,8 @@ def init():
     """
 
     app = web.Application()
-    app.router.add_get('/search/duckduckgo/{word}', spam)
+    app.router.add_get('/sht/{id}', spam, name='sht')
+    app.router.add_post('/short/', url_shortener, name='short')
     return app
 
 if(__name__ == '__main__'):

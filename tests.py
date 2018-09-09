@@ -1,12 +1,13 @@
 import unittest
+import csv
+
 from aiohttp.test_utils import AioHTTPTestCase, unittest_run_loop
 from aiohttp import web
 from unittest.mock import patch
 
 from main import init
-from utils import fetch_words
-
-class DuckDuckGoTestCase(AioHTTPTestCase):
+from utils import validate_url
+class ShorteningTestCase(AioHTTPTestCase):
 
     async def get_application(self):
         """
@@ -16,25 +17,28 @@ class DuckDuckGoTestCase(AioHTTPTestCase):
 
 
     @unittest_run_loop
-    async def test_spam(self):
-        resp = await self.client.request("GET", "/search/duckduckgo/sfsdf")
+    async def test_short(self):
+        resp = await self.client.request("POST", "/short/", json={'url': 'https://stackoverflow.com/question/'})
         assert resp.status == 200
         text = await resp.text()
-        assert "sfsdf" in text
+        assert "url" in text
 
 
-class TestFetchWords(unittest.TestCase):
+class TestValidation(unittest.TestCase):
     """Tests util function
     """
     def setUp(self):
-        self.func = fetch_words
+        self.func = validate_url
 
-    def test_functions_filter(self):
-        """Tests word filtering 
+    def test_function(self):
+        """Tests url validation 
         """
-        with patch('requests.get') as request:
-            with open('./test_info.txt') as mock_text:
-                _test_text = mock_text.read()
-                request.return_value.text = _test_text
-                filtered_words = self.func()
-        self.assertListEqual(filtered_words, ['hello', 'eeW'])
+        with open('./test_info.csv', 'r') as mock_urls:
+            reader = csv.reader(mock_urls, delimiter=',')
+            for row in reader:
+                valid = self.func(row[0])
+                self.assertEqual(valid, bool(int(row[1])))
+
+
+if __name__ == '__main__':
+    unittest.main()

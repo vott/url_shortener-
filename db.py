@@ -13,6 +13,14 @@ class Word(Base):
     text = Column(String(200), nullable=False, unique=True)
     titles = relationship("Title")
 
+class URL(Base):
+    """URL model
+    """
+    __tablename__ = 'url'
+    id = Column(Integer, primary_key=True)
+    text = Column(String(200), nullable=False, unique=True)
+    hash = Column(String(20), nullable=False, unique=True)
+
 class Title(Base):
     """Title Model
     """
